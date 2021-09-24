@@ -1,0 +1,58 @@
+( robot forth on c64 )
+
+( RS232 on C64 )
+
+: setup ( -- ) 
+14 53280 c! \ light blue border
+154 emit    \ text colour
+6 53281 c!  \ background dark blue
+0 $cc c! [  \ cursor blink on
+$fb stx,    \ store a copy of xreg
+8 lda,#     \ low byte of params
+$fd sta,    \ store at $fd
+0 lda,#     \ hi byte of params
+$fe sta,    \ store at $fe
+$2 lda,#    \ length of filename
+$fd ldx,#   \ lo byte params add
+$0  ldy,#   \ hi byte params add
+$ffbd jsr,  \ call kernal setnam
+2 lda,#     \ 2 = RS232 device#
+tax,        \ set device=2
+0 ldy,#     \ no secondary #
+$ffba jsr,  \ setlfs
+$ffc0 
+jsr,  \ open
+$fb ldx, ]  \ restore xreg
+147 emit ;  \ clear screen
+
+: sendbyte ( byte -- ) $fc c! [
+$fb stx,    \ save xreg
+2 ldx,#     \ rs232 device #
+$ffc9 jsr,  \ chkout
+$fc lda,	\ byte to send
+$ffd2 jsr,  \ chrout
+3 ldx,#     \ screen device #
+$ffc9 jsr,  \ chkout
+$fb ldx, ] ; \ restore xreg
+
+( joystick related )
+
+: fire1 $dc01 c@ 16 and if 0 else 1
+then ; \ joystick 1 fire button  
+
+: js1 $dc01 c@ 15 and ; \ read joystick  
+
+variable joypos
+
+: readf1 3 joypos ! begin 
+js1 dup 14 <> while  \ exit on up
+case
+7  of 2 joypos @ <> if ." >"
+2 dup sendbyte joypos ! then endof
+11 of 1 joypos @ <> if ." <"
+1 dup sendbyte joypos ! then endof
+15 of 3 joypos @ <> if ." []" 
+3 dup sendbyte joypos ! then endof
+endcase
+50 0 do i drop loop   \ delay loop 
+repeat drop ;
