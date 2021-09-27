@@ -1,0 +1,90 @@
+; Check of menu
+
+;Constants
+chrout  = $ffd2         ; Kernal call to output character to channel
+
+
+; Variables
+i_Var   = $fb           ; 2 byte temporary variable ($fb and $fc)
+j_Var   = $fd           ; Another 2 byte temporary variable ($fd and $fe)
+
+* = $2000
+
+Start   lda #147        ; Clear screen
+        jsr chrout
+        lda #23
+        sta 53272       ; switch to lower case char set
+        lda #13
+        jsr chrout
+        ldy #30         ; 30 chars
+        ldx #0
+MenuL1  lda Menu1,x     ; "Commodore 64 RC car controller"
+        jsr chrout
+        inx
+        dey
+        bne MenuL1
+        lda #13
+        jsr chrout
+        jsr chrout
+        ldy #30         ; 30 chars
+        ldx #0
+MenuL2  lda Menu2,x     ; "By Steve Smit     October 2021"
+        jsr chrout
+        inx
+        dey
+        bne MenuL2
+        lda #13
+        jsr chrout
+        jsr chrout
+        ldy #12         ; 12 chars
+        ldx #0
+MenuL3  lda Menu3,x     ; "Function Key"
+        jsr chrout
+        inx
+        dey
+        bne MenuL3
+        lda #13
+        jsr chrout
+        ldy #37         ; 37 chars
+        ldx #0
+FuncL1  lda Func1,x     ; "F1   Operate RC car without recording"
+        jsr chrout
+        inx
+        dey
+        bne FuncL1
+        lda #13
+        jsr chrout
+        ldy #34         ; 34 chars
+        ldx #0
+FuncL2  lda Func2,x     ; "F3   Operate RC car with recording"
+        jsr chrout
+        inx
+        dey
+        bne FuncL2
+        lda #13
+        jsr chrout
+        ldy #31         ; 31 chars
+        ldx #0
+FuncL3  lda Func3,x     ; "F5   Menu of recorded sequences"
+        jsr chrout
+        inx
+        dey
+        bne FuncL3
+        lda #13
+        jsr chrout
+        ldy #9         ; 9 chars
+        ldx #0
+FuncL4  lda Func4,x     ; "F7   Exit"
+        jsr chrout
+        inx
+        dey
+        bne FuncL4
+        rts
+
+Menu1   text "Commodore 64 RC car controller" ; 
+Menu2   text "By Steve Smit     October 2021"
+Menu3   text "Function Key"
+Func1   text "F1   Operate RC car without recording"
+Func2   text "F3   Operate RC car with recording"
+Func3   text "F5   Menu of recorded sequences"
+Func4   text "F7   Exit"
