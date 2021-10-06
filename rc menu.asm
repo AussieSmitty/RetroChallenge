@@ -1,5 +1,5 @@
 ; **************************************************************
-; * Commodore 64 RC car control by Steve Smit - V 1.0  26/9/21 *
+; * Commodore 64 RC car control by Steve Smit - V 1.0  6/10/21 *
 ; * Project submitted to RetroChallenge 2021-10                *
 ; **************************************************************
 
@@ -72,7 +72,7 @@ setup   lda #0          ;
         lda #2          ; Using Logical Number 2 for all RS232 access
         tax
         ldy #0
-        jsr setlfs      ; Open 2,2,
+        jsr setlfs      ; Open 2,2,RS232 at 1200 baud
         jsr open
 @Main   lda #147        ; Clear screen
         jsr chrout
@@ -144,8 +144,8 @@ setup   lda #0          ;
         inx
         dey
         bne @FuncL4
-@input1 jsr chrin
-        bne @input1
+@input1 jsr getin
+        beq @input1
         cmp #133        ; test for F1
         bne @next1      ; If not, test for F3
         jsr PlayRC      ; Call subroutine PlayRC
@@ -175,37 +175,95 @@ setup   lda #0          ;
 ; Play with the RC car without recording the sequence
 ; Should be easy, right?
 
-PlayRC  lda #147        ; Better clear the screen
-        jsr chrout      ; first
-        ldy #23
+PlayRC  lda #147        ; Better clear the 
+        jsr chrout      ; screen first
+        clc
+        ldx #2          ; place cursor 2 lines down
+        ldy #9          ; and 4 from left side
+        jsr plot
+        ldy #22
         ldx #0
-@JoyLp  lda JoyPort,x
+@JoyLp  lda JoyPort,x   ; Write "Use Joystick in Port 1"
         jsr chrout
         inx
         dey
         bne @joyLp
+        clc
+        ldx #4          ; place cursor 4 lines down
+        ldy #11         ; and 11 in from side
+        jsr plot
+        ldx #0
+        ldy #18
+@firex  lda FireXT,x
+        jsr chrout
+        inx
+        dey
+        bne @firex
 @joyML  clc             ; position cursor in middle of screen
-        ldy #20
+        ldy #19
         ldx #12
         jsr plot
         lda joy1        ; read Joystick in port 1
         sta i_Var       ; save a copy
-        and #16         ; testing for fire button
-        cmp #16
-        beq @ending
-        lda i_Var
+        cmp #239        ; test for fire button
+        bne @cont1
+        jmp @ending
+@cont1  lda i_Var
         cmp #255        ; nothing pressed yet?
         bne @next1
         lda #"O"        ; show a "O" in the middle of screen
         jsr chrout
         jmp @joyML
 @next1  lda i_Var
-        cmp #254        ; test for up
+        cmp #254        ; test for Forward
         bne @next2
         lda #"^"        ; need to select an appropriate char
         jsr chrout
         jmp @joyML
 @next2  lda i_Var
+        cmp #253        ; test for Back
+        bne @next3
+        lda #"v"        ; show a "v" in the middle of screen
+        jsr chrout
+        jmp @joyML
+@next3  lda i_Var
+        cmp #251        ; test for Left
+        bne @next4
+        lda #"<"        ; show a "<" in the middle of the screen
+        jsr chrout
+        jmp @joyML
+@next4  lda i_Var
+        cmp #247        ; test for Right
+        bne @next5
+        lda #">"        ; show a "<" in the middle of the screen
+        jsr chrout
+        jmp @joyML
+@next5  lda i_Var
+        cmp #250        ; test for Forward & Left
+        bne @next6
+        lda #176        ; show a Left/Up angle in the middle of the screen
+        jsr chrout
+        jmp @joyML
+@next6  lda i_Var
+        cmp #246        ; test for Forward & Right
+        bne @next7
+        lda #174        ; show a Right/Up angle in the middle of the screen
+        jsr chrout
+        jmp @joyML
+@next7  lda i_Var
+        cmp #249        ; test for Back & Left
+        bne @next8
+        lda #173        ; show a Down/Left angle in the middle of the screen
+        jsr chrout
+        jmp @joyML
+@next8  lda i_Var
+        cmp #245        ; test for Back & Right
+        bne @next9
+        lda #189        ; show a Down/Right angle in the middle of the screen
+        jsr chrout
+        jmp @joyML
+@next9  nop             ; test for anything else?
+        jmp @joyML
 @ending rts        
 
 ; Using RC car with recording of sequence
