@@ -15,12 +15,11 @@
 //create an RF24 object
 RF24 radio(7, 8);  // CE, CSN
 const byte address[6] = "00001"; //address through which two modules communicate.
-
 byte MyByteIN = 3;
 unsigned long previousTime = 0;
 // unsigned long currentTime = millis();
 signed long TurningTime = 0;    // Turning time is calculated from mills 
-boolean TTFlag = false; // Steering is currently centered
+boolean TTFlag = false; // Steering is currently centered (i.e. not turning)
 int enB = 9; // Blue - Steering PWM pin
 int in4 = 5; // green
 int in3 = 4; // yellow
@@ -80,17 +79,17 @@ void loop()
   digitalWrite(in4, HIGH);
   if (TTFlag = false) {  // steering is centred
     TTFlag = true;
-    analogWrite(enB, 250);
+    analogWrite(enB, 200);
     TurningTime = 0;
     previousTime = millis();
   } else {
     TurningTime = millis() - previousTime;
-    if (TurningTime < 600) {
-      analogWrite(enB, 250); // apply full power to turning motor
+    if (TurningTime < 1500) {
+      analogWrite(enB, 200); // apply full power to turning motor
       }
       else {
-        analogWrite(enB, 150); // lower power to hold in truned position
-        TurningTime = 600;
+        analogWrite(enB, 120); // lower power to hold in truned position
+        TurningTime = 1500;
       }
    }
  }
@@ -99,24 +98,24 @@ void loop()
   digitalWrite(in4, LOW);
   if (TTFlag = false) {  // steering is centred
     TTFlag = true;
-    analogWrite(enB, 250);
+    analogWrite(enB, 200);
     TurningTime = 0;
     previousTime = millis();
   } else {
     TurningTime = millis() - previousTime;
-    if (TurningTime < 600) {
-      analogWrite(enB, 250); // apply full power to turning motor
+    if (TurningTime < 1500) {
+      analogWrite(enB, 200); // apply full power to turning motor
       }
       else {
-        analogWrite(enB, 150); // lower power to hold in truned position
-        TurningTime = 600;
+        analogWrite(enB, 120); // lower power to hold in truned position
+        TurningTime = 1500;
       }
     }
   }
   if (MyByteIN == 4) {  // Drive forward
   digitalWrite(in1, LOW);
   digitalWrite(in2, HIGH);
-  analogWrite(enA, 250);
+  analogWrite(enA, 150);
   analogWrite(enB, 0); // cut power to steeriing motor
   if (TTFlag = true) {
     if (TurningTime > 0 ) {
@@ -135,7 +134,7 @@ void loop()
   if (MyByteIN == 5) {  // Drive backwards
   digitalWrite(in1, HIGH);
   digitalWrite(in2, LOW);
-  analogWrite(enA, 250);
+  analogWrite(enA, 150);
   analogWrite(enB, 0); // cut power to steeriing motor
   if (TTFlag = true) {
     if (TurningTime > 0 ) {
@@ -154,84 +153,92 @@ void loop()
   if (MyByteIN == 6) {  // Drive forward and right
   digitalWrite(in1, LOW);
   digitalWrite(in2, HIGH);
-  analogWrite(enA, 250);
+  analogWrite(enA, 150);
   digitalWrite(in3, HIGH);  // Right direction                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
   digitalWrite(in4, LOW);
-  if (TTFlag = true) {
-    if (TurningTime > 0 ) {
-      TurningTime = TurningTime - (millis()-previousTime);
-      if (TurningTime <0) { 
-        TurningTime = 0;
-        TTFlag = false;
-        } 
-      } else {
-      TurningTime=0;
-      previousTime=millis();
-      TTFlag = false;
-      }  
-    }
+  if (TTFlag = false) {  // steering is centred
+    TTFlag = true;
+    analogWrite(enB, 200);
+    TurningTime = 0;
+    previousTime = millis();
+  } else {
+    TurningTime = millis() - previousTime;
+    if (TurningTime < 1500) {
+      analogWrite(enB, 200); // apply full power to turning motor
+      }
+      else {
+        analogWrite(enB, 120); // lower power to hold in truned position
+        TurningTime = 1500;
+      }
+   }
   }
   if (MyByteIN == 9) {  // Drive forward and left
   digitalWrite(in1, LOW);
   digitalWrite(in2, HIGH);
-  analogWrite(enA, 250);
+  analogWrite(enA, 150);
   digitalWrite(in3, LOW);  // Left direction                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
   digitalWrite(in4, HIGH);
-  if (TTFlag = true) {
-    if (TurningTime > 0 ) {
-      TurningTime = TurningTime - (millis()-previousTime);
-      if (TurningTime <0) { 
-        TurningTime = 0;
-        TTFlag = false;
-        } 
-      } else {
-      TurningTime=0;
-      previousTime=millis();
-      TTFlag = false;
-      }  
-    }
+  if (TTFlag = false) {  // steering is centred
+    TTFlag = true;
+    analogWrite(enB, 200);
+    TurningTime = 0;
+    previousTime = millis();
+  } else {
+    TurningTime = millis() - previousTime;
+    if (TurningTime < 1500) {
+      analogWrite(enB, 200); // apply full power to turning motor
+      }
+      else {
+        analogWrite(enB, 120); // lower power to hold in truned position
+        TurningTime = 1500;
+      }
+   }
   }
   if (MyByteIN == 7) {  // Drive backwards and right
   digitalWrite(in1, HIGH);
   digitalWrite(in2, LOW);
-  analogWrite(enA, 250);
+  analogWrite(enA, 150);
   digitalWrite(in3, HIGH);  // Right direction                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
   digitalWrite(in4, LOW);
-  if (TTFlag = true) {
-    if (TurningTime > 0 ) {
-      TurningTime = TurningTime - (millis()-previousTime);
-      if (TurningTime <0) { 
-        TurningTime = 0;
-        TTFlag = false;
-        } 
-      } else {
-      TurningTime=0;
-      previousTime=millis();
-      TTFlag = false;
-      }  
-    }
+  if (TTFlag = false) {  // steering is centred
+    TTFlag = true;
+    analogWrite(enB, 200);
+    TurningTime = 0;
+    previousTime = millis();
+  } else {
+    TurningTime = millis() - previousTime;
+    if (TurningTime < 1500) {
+      analogWrite(enB, 200); // apply full power to turning motor
+      }
+      else {
+        analogWrite(enB, 120); // lower power to hold in truned position
+        TurningTime = 1500;
+      }
+   }
   }
   if (MyByteIN == 8) {  // Drive backwards and left
   digitalWrite(in1, HIGH);
   digitalWrite(in2, LOW);
-  analogWrite(enA, 250);
+  analogWrite(enA, 150);
   digitalWrite(in3, LOW);  // Left direction                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
   digitalWrite(in4, HIGH);
-  if (TTFlag = true) {
-    if (TurningTime > 0 ) {
-      TurningTime = TurningTime - (millis()-previousTime);
-      if (TurningTime <0) { 
-        TurningTime = 0;
-        TTFlag = false;
-        } 
-      } else {
-      TurningTime=0;
-      previousTime=millis();        
-      TTFlag = false;
-      }  
-    }
+  if (TTFlag = false) {  // steering is centred
+    TTFlag = true;
+    analogWrite(enB, 200);
+    TurningTime = 0;
+    previousTime = millis();
+  } else {
+    TurningTime = millis() - previousTime;
+    if (TurningTime < 1500) {
+      analogWrite(enB, 200); // apply full power to turning motor
+      }
+      else {
+        analogWrite(enB, 120); // lower power to hold in truned position
+        TurningTime = 1500;
+      }
+   }
   }
-  Serial.println(TurningTime);
-  Serial.println(millis()-previousTime);
+  // Serial.println(TurningTime);
+  // Serial.println(millis()-previousTime);
   delay(50);
 }
