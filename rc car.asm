@@ -1,5 +1,5 @@
 ; **************************************************************
-; * Commodore 64 RC car control by Steve Smit - V 1.3  9/10/21 *
+; * Commodore 64 RC car control by Steve Smit - V 1.4 31/10/21 *
 ; * Project submitted to RetroChallenge 2021-10                *
 ; **************************************************************
 ;
@@ -247,13 +247,13 @@ PlayRC  lda #147        ; Better clear the
         lda joy1        ; read Joystick in port 1
         sta w_Var       ; save a copy
         and #%00010000  ; mask out the 4th bit
-;        cmp #239        ; test for fire button
         bne @cont1
 @clrkb  jsr getin       ; lets clear the keyboard buffer
         bne @clrkb
 @loopj  lda joy1
         and #%00010000  ; mask out the 4th bit
         beq @loopj      ; loop until fire button released
+        jsr smldly
         jmp @ending
 @cont1  lda w_Var
         cmp LstPos      ; First let's see if anything has changed
@@ -457,7 +457,6 @@ PlayRec lda #147        ; Better clear the
         jmp @ending
 @noF7   lda joy1        ; read Joystick in port 1
         sta w_Var       ; save a copy
-;        cmp #239        ; test for fire button
         and #%00010000  ; mask out the 4th bit
         bne @cont1
 @clrkb  jsr getin       ; lets clear the keyboard buffer
@@ -467,11 +466,22 @@ PlayRec lda #147        ; Better clear the
         beq @loopj      ; loop until fire button released
         lda RecFlg      ; RecFlg checking if recording stopping or
         beq @cont2      ; Starting, or
+        lda SeqPos      ; If we are still at SeqPos 0 then 
+        beq @cont1      ; Let's keep going (i.e. ignore stop recording)
         jsr StopR       ; Call stop recording subroutine
         jsr Replay      ; Offer user opportunity to play back before saving
-        lda RecFlg      ; Did user want to save?
-        beq @joyML
-        jsr SaveRC      ; call the subroutine to get filename & save sequence
+        lda RecFlg      ; Did user want to replay
+        bne @cont       ; a non-zero means yes, they did want to save
+        clc             ; Need to wipe away the 'Replay sequence ...' text
+        ldx #23         ; place cursor 23 lines down
+        ldy #1          ; and 1 in from side
+        jsr plot        
+        ldx #38         ; a nearly full line of spaces
+        lda #" "
+@loop1  jsr chrout
+        dex
+        bne @loop1
+@cont   jsr SaveRC      ; call the subroutine to get filename & save sequence
         jmp @ending     ; After saving a sequence, lets return to main menu
 @cont2  jsr StartR      ; Call Sub routine to start recoding
         jmp @joyML
@@ -1209,17 +1219,6 @@ SelSeq  lda #14         ; 14 is standard colour
 @over4  dec SeqBoxP
         jsr DirLnC
         jmp @loop1
-;@next2  cmp #160        ; test for a mouse 'click'
-;        bne @next3
-;        jsr MousPos     ; Routine to return values for CursorX and CursorY
-;        jsr MsActD      ; Similar to Mouse Action for main prog, but for Load 
-;        lda a_Var       ; If MsActD returns a_Var = 1 then a seq was clicked on!
-;        bne @end
-;        jmp @loop1
-;@next3  cmp #"d"        ; Test if user pressed "D" for drive change
-;        bne @next4
-;        jsr DrvSel      ; Jump to subroutine to use keys to change drive
-;        jmp @loop1
 @next4  cmp #13         ; only return if CR is pressed
         beq @end
         jmp @loop1
@@ -1464,17 +1463,19 @@ StopR   lda X_Var       ; If the last 'command' sent to the RC car
         lda #3          ; just in case the fire button was pressed
         sta X_Var       ; when the RC car was sent a direction to go in
         jsr SndBytR     ; send the RC car the centre/off command
-@cont1  lda #0          ; Turn off the recording indicator
+@cont1  jsr smldly      ; Just to be safe,
+        jsr smldly      ; after a small delay
+        jsr smldly
+        lda #0          ; Turn off the recording indicator
         sta RecFlg
         lda #14         ; Light Blue colour for char
         sta 56025
-        jsr smldly      ; add delay to avoid fire button bounce
         rts
 
 ; Used when joystick is used for avoiding bounce
 
 smldly  ldy #5
-@loop2  ldx #250        ; small delay (approx 5 msec)
+@loop2  ldx #250        ; small delay (approx 7.5 msec)
 @loop1  dex
         bne @loop1
         dey
@@ -1510,13 +1511,13 @@ SndByt  ldx #$02        ; Set device
 SndBytR lda SeqPos      ; What position are we at
         ldx #3          ; this needs to be multiplied by 3
         jsr multi       ; Result acc = Hi Byte, x = Lo byte
-        stx k_Var     ; store in Lo byte
+        stx k_Var       ; store in Lo byte
         clc
         adc #$40
-        sta k_Var+1   ; Hi byte order
+        sta k_Var+1     ; Hi byte order
         ldy #0          ; initial offset from where array is pointing
         lda $a1         ; High Byte of Jiffies since last Reset
-        sta (k_Var),y ; Store in the RC array ($4000 + SeqPos*3)
+        sta (k_Var),y   ; Store in the RC array ($4000 + SeqPos*3)
         iny
         lda $a2         ; Low Byte of Jiffies
         sta (k_Var),y 
@@ -1553,6 +1554,8 @@ Replay  clc
         beq @replyy     ; replay yes
         cmp #"n"        ; We only need to save, no need to replay now
         bne @yesno      ; If user didn't press either y or n, go back        
+        lda #0          ; This confirms to do a save 
+        sta RecFlg
         rts             ; Retun to PlayRec for saving & back to main menu
 @replyy clc
         ldx #23
